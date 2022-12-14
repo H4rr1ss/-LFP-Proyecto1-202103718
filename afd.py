@@ -9,10 +9,19 @@ class Automata:
 
     def getNombre(self):
         return self.nombre
+    
+    #------------------------------------
+    def getEstados(self):
+        return self.estados
 
-class Transicion:
-    def __init__(self, origen, simboloEntrada, destino):
-        self.origen = origen
-        self.simboloEntrada = simboloEntrada
-        self.destino = destino
-        
+    def getAlfabeto(self):
+        return self.alfabeto
+
+    def getE_inicial(self):
+        return self.estadoInicial
+
+    def getE_aceptacion(self):
+        return self.estadosAceptacion
+
+    def getTransiciones(self):
+        return self.transiciones

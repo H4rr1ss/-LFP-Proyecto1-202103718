@@ -1,0 +1,26 @@
+digraph Patron{ 
+
+    rankdir = LR
+    layout = dot
+    node[shape = circle, width = 1, height = 1]; 
+    subgraph Cluster_A{ 
+    label = "Nombre: AFD_2"   
+    fontcolor ="black" 
+    fontsize = 30 
+    bgcolor ="#F1DFB2" 
+    nodeA[label = "A
+(inicio)" fontcolor = "#000000" fontsize = 20 fillcolor = "#CFF7E7" style = filled shape = cds]; 
+    nodeB[label = "B" fontcolor = "#000000" fontsize = 20 fillcolor = "#CFF7E7" style = filled]; 
+    nodeC[label = "C" fontcolor = "#000000" fontsize = 20 fillcolor = "#D0F3E6" style = filled shape = doublecircle]; 
+    nodeD[label = "D" fontcolor = "#000000" fontsize = 20 fillcolor = "#CFF7E7" style = filled]; 
+    nodeA->nodeB[label = 1]
+    nodeA->nodeC[label = 0]
+    nodeB->nodeA[label = 1]
+    nodeB->nodeD[label = 0]
+    nodeC->nodeD[label = 1]
+    nodeC->nodeA[label = 0]
+    nodeD->nodeC[label = 1]
+
+    } 
+
+}

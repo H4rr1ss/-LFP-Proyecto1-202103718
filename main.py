@@ -90,7 +90,7 @@ class AFD(Menu):
         print('boton ayuda')
 
     def __GenerarReporte(self):
-        print("Se imprimio el reporte de MODULO AFD")
+        DB.graphviz(nombreAFD)
 
     def Ventana_frame(self):
         self.frame = Frame()
@@ -178,17 +178,27 @@ class EvaluarCadena(Menu):
         self.ventana.destroy()
         AFD()      
 
-    def __evaluarCadena(self):
-        
-        print('hola')
-
     def funtionsCombo(self, event):
         var = event.widget.get()
+        global nombreAFD
+        nombreAFD = var
 
-        if var.lower() == 'errores':
-            print( "dslfjs")
-        elif var.lower() == 'resultados':
-            print('ssisi')
+    def __evaluarCadena(self):
+        try:
+            cadena = self.__tb_validar.get()
+            ruta = self.__tb_ruta.get()
+
+            if cadena != '':
+                DB.scanner(nombreAFD, cadena)
+                return 0
+
+            if ruta != '':
+                print('')
+                return 0
+
+            print('No eligio ninguna opcion')
+        except:
+            print('ocurrio un error.')
 
     def __listaAFDS(self):
         listaAux = []
@@ -201,7 +211,6 @@ class EvaluarCadena(Menu):
         reports.current(0)
         reports.bind('<<ComboboxSelected>>', self.funtionsCombo)
             
-
     def Ventana_frame(self):
         self.frame = Frame()
         self.frame.pack()
@@ -213,10 +222,10 @@ class EvaluarCadena(Menu):
 
 
         # JTEXFIELD------
-        self.__tb_nombre = Entry(self.frame, font = ("Comic Sans MS", 10), width = 17, justify = "center")
-        self.__tb_nombre.place(x = 11, y = 110)
-        self.__tb_estados= Entry(self.frame, font = ("Comic Sans MS", 10), width = 17, justify = "center")
-        self.__tb_estados.place(x = 186, y = 110)
+        self.__tb_validar = Entry(self.frame, font = ("Comic Sans MS", 10), width = 17, justify = "center")
+        self.__tb_validar.place(x = 11, y = 110)
+        self.__tb_ruta = Entry(self.frame, font = ("Comic Sans MS", 10), width = 17, justify = "center")
+        self.__tb_ruta.place(x = 186, y = 110)
 
         # BUTTON------
         self.__btn_Regrasar = Button(self.frame, text = "Regresar", command = self.__ir_pantalla_menuAFD, width = 8, height = 1, font = ("Arial", 9), bg = "#E7C09C")
@@ -417,10 +426,12 @@ class CargarArchivos(Menu):
                     MB.showerror('aviso', 'No existe datos en el archivo que ha seleccionado')
                     return 0
 
-                MB.showinfo('Aviso', 'Datos cargados correctamente')
                 DB.leerArchivo(texto)
         except:
             MB.showerror('Error', 'No ha cargado ningun archivo, por favor vuelva a internarlo')
+        
+        self.ventana.destroy()
+        EvaluarCadena() 
 
     def Ventana_frame(self):
         self.frame = Frame()
