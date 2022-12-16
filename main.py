@@ -128,7 +128,7 @@ class crearAFD(Menu):
         AFD()      
 
     def __crearAFD(self):
-        DB.crear_ObjAFD(self.__tb_nombre.get(), self.__tb_estados.get(), self.__tb_alfabeto.get(), self.__tb_estadosAceptacion.get(), self.__tb_transiciones.get(), self.__tb_estadoInicial.get())
+        DB.crear_ObjAFD(self.__tb_nombre.get(), self.__tb_estados.get().replace(' ', ''), self.__tb_alfabeto.get().replace(' ', ''), self.__tb_estadosAceptacion.get().replace(' ', ''), self.__tb_transiciones.get().replace(' ', ''), self.__tb_estadoInicial.get())
 
     def Ventana_frame(self):
         self.frame = Frame()
@@ -194,7 +194,7 @@ class EvaluarCadena(Menu):
 
             if ruta != '':
                 cantAFDs = DB.scanner(nombreAFD, ruta, 'si')
-                DB.rutaPDF(cantAFDs, ruta)
+                DB.rutaPDF(cantAFDs, ruta, nombreAFD)
                 return 0
 
             print('No eligio ninguna opcion')
@@ -263,9 +263,9 @@ class GR(Menu):
     def __ayuda(self):
         print('boton ayuda')
 
-    def __GenerarReporte(self):
-        print("Se imprimio el reporte de MODULO AFD")
-
+    def __GenerarReporteGR(self):
+        DB.graphvizGR(nombreAFD, '', '', '', '')
+        
     def Ventana_frame(self):
         self.frame = Frame()
         self.frame.pack()
@@ -278,7 +278,7 @@ class GR(Menu):
         self.__btn_EvaluarCadena = Button(self.frame, text = "Evaluar Cadena", command = self.__ir_pantalla_EvaluarCadena, width = 14, height = 2, font = ("Arial", 10), bg = "#E7C09C")
         self.__btn_EvaluarCadena.place(x = 20, y = 102)
 
-        self.__btn_GenerarReporte = Button(self.frame, text = "Generar Reporte", command = self.__GenerarReporte, width = 14, height = 2, font = ("Arial", 10), bg = "#E7C09C")
+        self.__btn_GenerarReporte = Button(self.frame, text = "Generar Reporte", command = self.__GenerarReporteGR, width = 14, height = 2, font = ("Arial", 10), bg = "#E7C09C")
         self.__btn_GenerarReporte.place(x = 20, y = 173)
 
         self.__btn_Regresar = Button(self.frame, text = "Salir", command = super().ir_pantalla_menu, width = 9, height = 8, font = ("Arial", 10), bg = "#E7C09C")
@@ -303,7 +303,7 @@ class crearGR(Menu):
         GR()      
 
     def __crearGR(self):
-        DB.crear_ObjGR(self.__tb_nombreGR.get(), self.__tb_noTerminales.get(), self.__tb_terminales.get().replace(' ', ''), self.__tb_noTerminalInicial.get().replace(' ', ''), self.__tb_producciones.get().replace(' ', ''))
+        DB.crear_ObjGR(self.__tb_nombreGR.get(), self.__tb_noTerminales.get().replace(' ', ''), self.__tb_terminales.get().replace(' ', ''), self.__tb_noTerminalInicial.get(), self.__tb_producciones.get().replace(' ', ''))
 
     def Ventana_frame(self):
         self.frame = Frame()
@@ -354,15 +354,9 @@ class EvaluarCadenaGR(Menu):
         print('hola')
 
     def funtionsCombo(self, event):
-        try:
-            var = event.widget.get()
-
-            if var.lower() == 'errores':
-                print( "dslfjs")
-            elif var.lower() == 'resultados':
-                print('ssisi')
-        except:
-            print('ocurrio un error.')
+        var = event.widget.get()
+        global nombreAFD
+        nombreAFD = var
 
     def __listaGRS(self):
         listaAux = []
@@ -422,17 +416,28 @@ class CargarArchivos(Menu):
             with open(archivo, 'r', encoding='utf-8') as file:
 
                 texto = file.readlines()
-
+                
                 if texto == '':
                     MB.showerror('aviso', 'No existe datos en el archivo que ha seleccionado')
                     return 0
+                
+                numerofila = archivo.find('.gre')
+                ext = archivo[numerofila:numerofila+4]
 
-                DB.leerArchivo(texto)
+                if ext == '':
+                    conf = DB.leerArchivo(texto)
+                    if conf != 0:
+                        self.ventana.destroy()
+                        EvaluarCadena() 
+
+                else:
+                    conf = DB.leerArchivoGR(texto)
+                    if conf != 0:
+                        self.ventana.destroy()
+                        print(DB.lista_AFD)
+                        EvaluarCadenaGR() 
         except:
             MB.showerror('Error', 'No ha cargado ningun archivo, por favor vuelva a internarlo')
-        
-        self.ventana.destroy()
-        EvaluarCadena() 
 
     def Ventana_frame(self):
         self.frame = Frame()

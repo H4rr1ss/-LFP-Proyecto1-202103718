@@ -4,7 +4,7 @@ digraph Patron{
     layout = dot
     node[shape = circle, width = 1, height = 1]; 
     subgraph Cluster_A{ 
-    label = "Nombre: AFD_1"   
+    label = "Nombre: G_1"   
     fontcolor ="black" 
     fontsize = 30 
     bgcolor ="#F1DFB2" 
@@ -13,11 +13,14 @@ digraph Patron{
     nodeB[label = "B" fontcolor = "#000000" fontsize = 20 fillcolor = "#CFF7E7" style = filled]; 
     nodeC[label = "C" fontcolor = "#000000" fontsize = 20 fillcolor = "#D0F3E6" style = filled shape = doublecircle]; 
     nodeD[label = "D" fontcolor = "#000000" fontsize = 20 fillcolor = "#CFF7E7" style = filled]; 
-    nodeB->nodeC[label = 0]
-    nodeC->nodeC[label = 1]
+    nodeA->nodeB[label = 0]
+    nodeA->nodeC[label = 1]
+    nodeB->nodeA[label = 0]
+    nodeB->nodeD[label = 1]
     nodeC->nodeD[label = 0]
-    nodeA->nodeB[label = 1]
-    nodeD->nodeC[label = 1]
+    nodeC->nodeA[label = 1]
+    nodeD->nodeC[label = 0]
+    nodeD->nodeB[label = 1]
 
     } 
 
