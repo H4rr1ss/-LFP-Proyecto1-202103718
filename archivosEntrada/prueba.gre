@@ -1,0 +1,16 @@
+G_1         |Nombre
+A,B,C,D     |NoTerminales
+0,1         |Terminales
+A           |NoTermInicial
+A > 0 B     
+A > 1 C     
+B > 0 A     |Producciones
+B > 1 D
+C > 0 D
+C > 1 A
+C > $
+D > 0 C
+D > 1 B
+%           |Fin gramat
+
+A > 0 B;A > 1 C;B > 0 A;B > 1 D;C > 0 D;C > 1 A;C > $;D > 0 C;D > 1 B

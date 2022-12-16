@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog, Tk
 import tkinter.messagebox as MB
-from database import DB
+from Database.database import DB
 
 #https://github.com/DiiAns23/LFP_VACACIONES_2022/tree/master/Proyecto1
 
@@ -90,7 +90,7 @@ class AFD(Menu):
         print('boton ayuda')
 
     def __GenerarReporte(self):
-        DB.graphviz(nombreAFD)
+        DB.graphviz(nombreAFD, '', '', '', '')
 
     def Ventana_frame(self):
         self.frame = Frame()
@@ -189,16 +189,17 @@ class EvaluarCadena(Menu):
             ruta = self.__tb_ruta.get()
 
             if cadena != '':
-                DB.scanner(nombreAFD, cadena)
+                DB.scanner(nombreAFD, cadena, '')
                 return 0
 
             if ruta != '':
-                print('')
+                cantAFDs = DB.scanner(nombreAFD, ruta, 'si')
+                DB.rutaPDF(cantAFDs, ruta)
                 return 0
 
             print('No eligio ninguna opcion')
         except:
-            print('ocurrio un error.')
+            print('Elija un afd, ERROR')
 
     def __listaAFDS(self):
         listaAux = []
@@ -302,7 +303,7 @@ class crearGR(Menu):
         GR()      
 
     def __crearGR(self):
-        pass
+        DB.crear_ObjGR(self.__tb_nombreGR.get(), self.__tb_noTerminales.get(), self.__tb_terminales.get().replace(' ', ''), self.__tb_noTerminalInicial.get().replace(' ', ''), self.__tb_producciones.get().replace(' ', ''))
 
     def Ventana_frame(self):
         self.frame = Frame()
@@ -317,8 +318,8 @@ class crearGR(Menu):
         Label(self.frame, text = "No terminal inicial:", bg = "#F9E1BE", font = ("Comic Sans MS", 10)).place(x = 193, y = 3)
 
         # JTEXFIELD------
-        self.__tb_nombre = Entry(self.frame, font = ("Comic Sans MS", 10), width = 16, justify = "center")
-        self.__tb_nombre.place(x = 15, y = 23)
+        self.__tb_nombreGR = Entry(self.frame, font = ("Comic Sans MS", 10), width = 16, justify = "center")
+        self.__tb_nombreGR.place(x = 15, y = 23)
         self.__tb_noTerminales= Entry(self.frame, font = ("Comic Sans MS", 10), width = 35, justify = "center")
         self.__tb_noTerminales.place(x = 15, y = 75)
         self.__tb_terminales = Entry(self.frame, font = ("Comic Sans MS", 10), width = 35, justify = "center")

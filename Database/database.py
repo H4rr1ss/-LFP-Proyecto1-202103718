@@ -2,14 +2,14 @@ import os
 import webbrowser
 
 from fpdf import FPDF
-from afd import *
+from Database.afd import *
 import tkinter.messagebox as MB
 
 class Database():
     def __init__(self):
         self.lista_AFD = []
 
-#-------------------------------------------------MODULO AFD-------------------------------------------------|
+#--------------------------------------------------------MODULO AFD--------------------------------------------------------|
 # (CREAR AFD)
     def __validaciones_alfabeto(self, lista_alfabeto, lista_estados):
         ''' || Verifica que el alfabeto ingresado ningun simbolo se repita 2 veces ||'''
@@ -101,21 +101,25 @@ class Database():
         MB.showinfo(message="Se agrego correctamente!", title="AFD guardado")
 
 # (EVALUAR CADENA)
-    def scanner(self, nombreAFD, cadena):
+    def scanner(self, nombreAFD, cadena, confirmacion):
         for afd in self.lista_AFD:
             if afd.getNombre() != nombreAFD:
                 continue
 
             estado = afd.getE_inicial()
-
+            i = 1
             for caracter in cadena:
                 
                 encontrado = False
                 for alfabeto, sig in afd.getTransiciones()[estado]:
                     if caracter != alfabeto:
                         continue
+                    
                     estado = sig
                     encontrado = True
+                    if confirmacion != '':
+                        cantGraficas = self.graphviz(nombreAFD, 'SI', estado, i, alfabeto)
+                        i += 1
                     break
 
                 if not encontrado:
@@ -128,31 +132,47 @@ class Database():
                 print('cadena valida')
 
         print(f'\nNombre del AFD: {nombreAFD}, Cadena a evaluar: {cadena}')
+        if confirmacion != '':
+            return cantGraficas
 
 # (GENERAR REPORTE)
-    def graphviz(self, nombre_afd):
+    def graphviz(self, nombre_afd, llave, actual, cont, simbolo):
         for afd in self.lista_AFD:
 
             if nombre_afd != afd.getNombre():
                 continue
 
             # -----------------------------------------------GRAFICACIÓN-----------------------------------------------
-            i = 1
-            graphviz = 'digraph Patron{ \n\n    rankdir = LR\n    layout = dot\n    node[shape = circle, width = 1, height = 1]; \n    subgraph Cluster_A{ \n    label = "' + 'Nombre: '+ afd.getNombre() + '"   \n    fontcolor ="black" \n    fontsize = 30 \n    bgcolor ="#F1DFB2" \n'
+            if llave != '':
+                graphviz = 'digraph Patron{ \n\n    rankdir = LR\n    layout = dot\n    node[shape = circle, width = 1, height = 1]; \n    subgraph Cluster_A{ \n    label = "' + 'Paso: '+ str(cont) + '  |  Simbolo: '+str(simbolo)+' "   \n    fontcolor ="black" \n    fontsize = 26 \n    bgcolor ="#F1DFB2" \n'
+            else:
+                graphviz = 'digraph Patron{ \n\n    rankdir = LR\n    layout = dot\n    node[shape = circle, width = 1, height = 1]; \n    subgraph Cluster_A{ \n    label = "' + 'Nombre: '+ afd.getNombre() + '"   \n    fontcolor ="black" \n    fontsize = 30 \n    bgcolor ="#F1DFB2" \n'
             
             for estado in afd.getEstados():
                 if estado == afd.getE_inicial():
+                    if estado == actual:
+                        if llave != '':
+                            graphviz += f'    node{estado}' + '[label = "'+ str(estado) +'\n(inicio)" fontcolor = "#000000" fontsize = 20 fillcolor = "#1BB427" style = filled shape = cds]; \n'
+                            continue
+
                     graphviz += f'    node{estado}' + '[label = "'+ str(estado) +'\n(inicio)" fontcolor = "#000000" fontsize = 20 fillcolor = "#CFF7E7" style = filled shape = cds]; \n'
-                    i += 1
                     continue
 
                 if estado in afd.getE_aceptacion():
+                    if estado == actual:
+                        if llave != '':
+                            graphviz += f'    node{estado}' + '[label = "'+ str(estado) +'" fontcolor = "#000000" fontsize = 20 fillcolor = "#1BB427" style = filled shape = doublecircle]; \n'
+                            continue
+
                     graphviz += f'    node{estado}' + '[label = "'+ str(estado) +'" fontcolor = "#000000" fontsize = 20 fillcolor = "#D0F3E6" style = filled shape = doublecircle]; \n'
-                    i += 1
                     continue
+                
+                if estado == actual:
+                    if llave != '':
+                        graphviz += f'    node{estado}' + '[label = "'+ str(estado) +'" fontcolor = "#000000" fontsize = 20 fillcolor = "#1BB427" style = filled]; \n'
+                        continue
 
                 graphviz += f'    node{estado}' + '[label = "'+ str(estado) +'" fontcolor = "#000000" fontsize = 20 fillcolor = "#CFF7E7" style = filled]; \n'
-                i += 1
 
             # .....................CONEXION DE NODOS.......................|
             for E_origen in afd.getTransiciones():
@@ -165,13 +185,20 @@ class Database():
 
             graphviz += '\n    } \n\n}'
 
-            document = 'grafica' + '.txt'
+            document = './reportes/grafica.txt'
 
             with open(document, 'w') as grafica:
                 grafica.write(graphviz)
 
-            jpg = 'afd.jpg'
-            os.system("dot.exe -Tjpg " + document + " -o " + jpg)
+            if llave != '':
+                jpg = f'afd{cont}.jpg'
+                os.system("dot.exe -Tjpg " + document + " -o " + jpg)
+            else:
+                jpg = './reportes/afd.jpg'
+                os.system("dot.exe -Tjpg " + document + " -o " + jpg)
+
+            if llave != '':
+                return cont
 
             # .....................GENERACION DE CADENA MINIMA VALIDA.......................|
             keys = afd.getTransiciones().keys()
@@ -191,8 +218,8 @@ class Database():
             pdf = FPDF(orientation = "L", unit = "mm", format = "A4")
     
             pdf.add_page()
-            pdf.image("afd.jpg", x = 15, y = 100)
-            pdf.image("logo.png", x = 240, y = 11, w = 22, h = 22)
+            pdf.image("./reportes/afd.jpg", x = 15, y = 100)
+            pdf.image("./archivosEntrada/logo.png", x = 240, y = 11, w = 22, h = 22)
 
             pdf.set_font('Arial', '', 16)
             pdf.text(x=80, y=10, txt=f'Estados: {afd.getEstados()}')
@@ -210,14 +237,116 @@ class Database():
                     pdf.text(x=173, y=posY, txt=f'{EstadoOrigen},{element[0]};{element[1]}')
                     posY += 10
 
-            pdf.output(f"Reporte_{afd.getNombre()}" + ".pdf")
+            pdf.output(f"./reportes/ReporteAFD_{afd.getNombre()}.pdf")
             break
-#------------------------------------------------------------------------------------------------------------|
+
+    def rutaPDF(self, afds, cadena):
+        pdf = FPDF(orientation = "L", unit = "mm", format = "A4")
+    
+        for i in range(afds):
+            pdf.add_page()
+            pdf.image(f"afd{str(i+1)}.jpg", x = 8, y = 50)
+            pdf.set_font('Arial', '', 21)
+            pdf.text(x=90, y=18, txt=f'Cadena que se esta validando: {cadena}')
+            pdf.image("./archivosEntrada/logo.png", x = 260, y = 11, w = 22, h = 22)
+        pdf.output("./reportes/ReporteRutaAFD.pdf")
+
+        ##### ERRORR ##########
+        for i in range(afds):
+            os.remove(f"afd{i+1}.jpg")
+#---------------------------------------------------------------------------------------------------------------------------|
+
+
+
+
+#---------------------------------------------------------MODULO GR---------------------------------------------------------|
+# (CREAR GR)
+    def __validaciones_NoTerminales(self, noTerminales):
+        for N_terminal in noTerminales:
+            if noTerminales.count(N_terminal) > 1:
+                MB.showerror(message=f"Estado {N_terminal} se repite 2 veces, ingreselo 1 vez.", title="Error")
+                return False
+        return True
+
+    def __validaciones_terminales(self, noTerminales, terminales):
+        for h in terminales:
+            if terminales.count(h) > 1:
+                return False
+
+            for a in noTerminales:
+                if h == a:
+                    return False
+        return True
+
+    def __validaciones_noTerminalInicial(self, noTerminales, noTerminalInicial):
+        for N_terminal in noTerminales:
+            if N_terminal == noTerminalInicial:
+                return True
+        return False
+
+    def __validaciones_terminalYnoTerminal(self, noTerminalInicial, terminal, noTerminal, listaTerminales, listaNoTerminales):
+        if (terminal in listaTerminales) and (noTerminal in listaNoTerminales) and (noTerminalInicial in listaNoTerminales):
+            return True
+        return False
+
+
+    def crear_ObjGR(self, nombre, noTerminales, terminales, noTerminalInicial, producciones):
+        noTerminales_ = noTerminales.split(';')
+        terminales_ = terminales.split(';')
+        producciones_ = producciones.split(';')
+
+        # VALIDACIONES----------|
+        if not self.__validaciones_NoTerminales(noTerminales_):
+            return 0
+
+        if not self.__validaciones_terminales(noTerminales_, terminales_):
+            MB.showerror(message='Por favor, revise sus terminales.', title="Error")
+            return 0
+
+        if not self.__validaciones_noTerminalInicial(noTerminales_, noTerminalInicial):
+            MB.showerror(message='El no terminal ingresado no existe.', title="Error")
+            return 0
+        # ----------------------|
+
+        producciones__ = {}
+        estadosAceptacion_ = []
+        for p in producciones_:
+            p = p.split('>') # ['A', '0B']
+            
+            # RECONOCEDOR DE ESTADOS DE ACEPTACION
+            if p[1] == '$':
+                if not self.__validaciones_noTerminalInicial(noTerminales_, p[1]):
+                    MB.showerror(message='El "no terminal" de aceptacion no existe', title="Error")
+                    return 0
+                estadosAceptacion_.append(p[0])
+                continue
+
+            # VERIFICACION SI SE AGREGA OTRA TRANSICION A UNA LLAVE EXISTENTE
+            if not self.__validaciones_terminalYnoTerminal(p[0], p[1][0], p[1][1], terminales_, noTerminales_):
+                MB.showerror(message='Por favor, revise sus terminales y noTerminales\nen cada produccion', title="Error")
+                return 0
+
+            if p[0] in producciones__:
+                entrada = (f'{p[1][0]}', f'{p[1][1]}')
+                producciones__[f'{p[0]}'].append(entrada)
+                continue
+            
+            producciones__[f'{p[0]}'] = [(f'{p[1][0]}', f'{p[1][1]}')]
+
+        automata = Automata(nombre, noTerminales_, terminales_, noTerminalInicial, estadosAceptacion_, producciones__)
+        self.lista_AFD.append(automata)
+        
+        MB.showinfo(message="Se agrego correctamente!", title="GRAMATICA cargada")
+
+# (EVALUAR CADENA)
+# (GENERAR REPORTE)
+#---------------------------------------------------------------------------------------------------------------------------|
+
 
 
 
 #-------------------------------------------------MODULO CARGAR ARCHIVO AFD-------------------------------------------------|     
-
+# (LEER ARCHIVO AFD)
     def leerArchivo(self, texto):
         listaAFDS = []
         listaAux = []
@@ -293,5 +422,6 @@ class Database():
 
         MB.showinfo(message="Se agrego correctamente!", title="AFD guardado")
 
+# (LEER ARCHIVO GR)
 #---------------------------------------------------------------------------------------------------------------------------|
 DB = Database()
