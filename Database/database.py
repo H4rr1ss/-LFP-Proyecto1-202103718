@@ -89,6 +89,10 @@ class Database():
         for t in transiciones_:
             t = t.split(",")
 
+            if not((t[0] in estados_) and (t[2] in estados_)):
+                MB.showerror(message="por favor, un estado ingresado en transiciones no existe.", title="Error")
+                return 0
+
             if t[0] in transiciones__:
                 entrada = (f'{t[1]}', f'{t[2]}')
                 transiciones__[f'{t[0]}'].append(entrada)
