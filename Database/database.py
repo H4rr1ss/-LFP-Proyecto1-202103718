@@ -70,7 +70,7 @@ class Database():
         if not self.__validaciones_alfabeto(alfabeto_, estados_):
             MB.showerror(message="por favor, revise el alfabeto.", title="Error")
             return 0
-
+        #'A,b,A;A,a,B;B,b,C;C,a,B'
         if not self.__validaciones_estadoInicial(estados_, estadoInicial):
             MB.showerror(message="por favor, coloque un estado valido.", title="Error")
             return 0
@@ -91,7 +91,7 @@ class Database():
 
             if t[0] in transiciones__:
                 entrada = (f'{t[1]}', f'{t[2]}')
-                transiciones_[f'{t[0]}'].append(entrada)
+                transiciones__[f'{t[0]}'].append(entrada)
                 continue
 
             transiciones__[f'{t[0]}'] = [(f'{t[1]}', f'{t[2]}')]
@@ -103,11 +103,13 @@ class Database():
 
 # (EVALUAR CADENA)
     def scanner(self, nombreAFD, cadena, confirmacion):
+        lis = []
         for afd in self.lista_AFD:
             if afd.getNombre() != nombreAFD:
                 continue
 
             estado = afd.getE_inicial()
+            lis =afd.getE_aceptacion()
             i = 1
             for caracter in cadena:
                 
@@ -136,8 +138,13 @@ class Database():
                 MB.showinfo(message=f"Cadena: {cadena}, es valida.", title="Proceso exitoso")
 
         print(f'\nNombre del AFD: {nombreAFD}, Cadena a evaluar: {cadena}')
+        final = []
+        for sweet in lis:
+            if sweet not in final:
+                final.append(sweet)
+
         if confirmacion != '':
-            return cantGraficas
+            return final, cantGraficas
 
 # (GENERAR REPORTE)
     def graphviz(self, nombre_afd, llave, actual, cont, simbolo):
@@ -245,7 +252,7 @@ class Database():
             MB.showinfo(message="Se genero correctamente.", title="Reporte creado")
             break
 
-    def rutaPDF(self, afds, cadena, nombreAFD):
+    def rutaPDF(self, afds, cadena, nombreAFD, listAcept):
         pdf = FPDF(orientation = "L", unit = "mm", format = "A4")
     
         for i in range(afds):
@@ -253,6 +260,7 @@ class Database():
             pdf.image(f"./reportes/afd{str(i+1)}.jpg", x = 8, y = 50)
             pdf.set_font('Arial', '', 21)
             pdf.text(x=80, y=18, txt=f'Cadena que se esta validando: {cadena}')
+            pdf.text(x=95, y=26, txt=f'Estados de aceptacion: {listAcept}')
             pdf.image("./archivosEntrada/logo.png", x = 260, y = 11, w = 22, h = 22)
         pdf.output(f"./reportes/ReporteRutaAFD__{nombreAFD}.pdf")
 
@@ -260,8 +268,6 @@ class Database():
         for i in range(afds):
             os.remove(f"./reportes/afd{i+1}.jpg")
 #---------------------------------------------------------------------------------------------------------------------------|
-
-
 
 
 #---------------------------------------------------------MODULO GR---------------------------------------------------------|
@@ -343,8 +349,6 @@ class Database():
         
         MB.showinfo(message="Se agrego correctamente!", title="GRAMATICA cargada")
 
-# (EVALUAR CADENA)
-
 # (GENERAR REPORTE)
     def graphvizGR(self, nombre_gr, llave, actual, cont, simbolo):
         for afd in self.lista_AFD:
@@ -420,6 +424,11 @@ class Database():
                 for e in listaEstado:
                     cadena += e[0]
 
+            final = []
+            for sweet in afd.getE_aceptacion():
+                if sweet not in final:
+                    final.append(sweet)
+
             # .....................GENERACION DEL PDF(REPORTE).......................|
             pdf = FPDF(orientation = "L", unit = "mm", format = "A4")
     
@@ -432,6 +441,7 @@ class Database():
             pdf.text(x=65, y=30, txt=f'Terminales: {afd.getAlfabeto()}')
             pdf.text(x=65, y=50, txt=f'No terminal inicial: {afd.getE_inicial()}')
             pdf.text(x=65, y=70, txt=f'Cadena minima válida: {cadena}')
+            pdf.text(x=65, y=86, txt=f'Estados aceptación: {final}')
             pdf.text(x=170, y=10, txt='Producciones:')
 
             posY = 20
@@ -441,7 +451,7 @@ class Database():
                 for element in listEstadoo:
 
                     if len(listEstadoo) == suma:
-                        pdf.text(x=183, y=posY, txt=f' | {element[0]} {element[1]}')
+                        pdf.text(x=183, y=posY, txt=f'| {element[0]} {element[1]}')
                         posY += 8
                         continue
 
@@ -453,8 +463,6 @@ class Database():
             MB.showinfo(message="Se genero correctamente.", title="Reporte creado")
             break
 #---------------------------------------------------------------------------------------------------------------------------|
-
-
 
 
 #-------------------------------------------------MODULO CARGAR ARCHIVO AFD-------------------------------------------------|     

@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog, Tk
+import tkinter
 import tkinter.messagebox as MB
 from Database.database import DB
 
@@ -87,10 +88,14 @@ class AFD(Menu):
         EvaluarCadena()
 
     def __ayuda(self):
-        print('boton ayuda')
+        self.ventana.destroy()
+        ayudaAFD()
 
     def __GenerarReporte(self):
-        DB.graphviz(nombreAFD, '', '', '', '')
+        try:
+            DB.graphviz(nombreAFD, '', '', '', '')
+        except:
+            MB.showwarning(message="Seleccione un AFD para gráficar", title="ERROR")
 
     def Ventana_frame(self):
         self.frame = Frame()
@@ -188,29 +193,35 @@ class EvaluarCadena(Menu):
             cadena = self.__tb_validar.get()
             ruta = self.__tb_ruta.get()
 
-            if cadena != '':
+            if cadena == '' and ruta == '':
+                MB.showwarning(message="No ha ingresado nada para evaluar.", title="Revise los campos de texto")
+                return 
+
+            if cadena != '' and ruta == '':
                 DB.scanner(nombreAFD, cadena, '')
+                return 
+            elif ruta != '' and cadena == '':
+                listAcept, cantAFDs = DB.scanner(nombreAFD, ruta, 'si')
+                DB.rutaPDF(cantAFDs, ruta, nombreAFD, listAcept)
                 return 0
-
-            if ruta != '':
-                cantAFDs = DB.scanner(nombreAFD, ruta, 'si')
-                DB.rutaPDF(cantAFDs, ruta, nombreAFD)
-                return 0
-
-            print('No eligio ninguna opcion')
+            else:
+                MB.showwarning(message="Por favor, rellene un solo campo.", title="Revise los campos de texto")
         except:
-            print('Elija un afd, ERROR')
+            MB.showerror(message="Por favor, elija un AFD.", title="ERROR")
 
     def __listaAFDS(self):
-        listaAux = []
-        for i in DB.lista_AFD:
-            listaAux.append(i.getNombre())
+        try:
+            listaAux = []
+            for i in DB.lista_AFD:
+                listaAux.append(i.getNombre())
 
-        # MENU DE AFD'S
-        reports = ttk.Combobox(self.frame, width=18, height=5, values = listaAux, state='readonly')
-        reports.place(x = 100, y = 45)
-        reports.current(0)
-        reports.bind('<<ComboboxSelected>>', self.funtionsCombo)
+            # MENU DE AFD'S
+            reports = ttk.Combobox(self.frame, width=18, height=5, values = listaAux, state='readonly')
+            reports.place(x = 100, y = 45)
+            reports.current(0)
+            reports.bind('<<ComboboxSelected>>', self.funtionsCombo)
+        except:
+            MB.showwarning(message="Por favor, ingrese sus AFD.", title="Carga de archivos")
             
     def Ventana_frame(self):
         self.frame = Frame()
@@ -240,7 +251,36 @@ class EvaluarCadena(Menu):
 
         self.frame.mainloop()
 
+class ayudaAFD(Menu):
+    def __init__(self):
+        super().General_ventana()
+        self.ventana.title("Ayuda AFD")
+        super().centrar(self.ventana, 540, 420)
+        self.ventana.geometry("540x400")# ANCHO X LARGO
+        self.Ventana_frame()  
 
+    def __ir_pantalla_menuAFD(self):
+        self.ventana.destroy()
+        AFD()      
+
+    def Ventana_frame(self):
+        self.frame = Frame()
+        self.frame.pack()
+        self.frame.config(bg = "#F9E1BE", width = "540", height = "390", relief = "ridge", bd = 12)
+
+        # LABLES------
+        Label(self.frame, text = "¿Qué es un automata finito determinista?", bg = "#F9E1BE", font = ("Comic Sans MS", 12)).place(x = 95, y = 3)
+        Label(self.frame, text = "Un AFD tiene un conjunto finito de estados y un conjunto \nfinito de símbolos de entrada. El término “determinista” hace \nreferencia al hecho de que para cada entrada sólo existe uno y \nsólo un estado al que el autómata puede hacer la transición \na partir de su estado actual.", bg = "#F9E1BE", font = ("Comic Sans MS", 11)).place(x = 18, y = 35)
+
+        img = tkinter.PhotoImage(file = './imas/AFD.png', width=267, height=156)
+        lbl_img = tkinter.Label(self.frame, image=img)
+        lbl_img.place(x = 105, y = 144)
+
+        # BUTTON------
+        self.__btn_Regrasar = Button(self.frame, text = "Regresar", command=self.__ir_pantalla_menuAFD, width = 8, height = 1, font = ("Arial", 9), bg = "#E7C09C")
+        self.__btn_Regrasar.place(x = 210, y = 311)
+
+        self.frame.mainloop()
 
 
 #...............................................................MODULO GR...................................................
@@ -260,11 +300,15 @@ class GR(Menu):
         self.ventana.destroy()
         EvaluarCadenaGR()
 
-    def __ayuda(self):
-        print('boton ayuda')
+    def __ir_pantalla_ayudaGR(self):
+        self.ventana.destroy()
+        ayudaGR()
 
     def __GenerarReporteGR(self):
-        DB.graphvizGR(nombreAFD, '', '', '', '')
+        try:
+            DB.graphvizGR(nombreAFD, '', '', '', '')
+        except:
+            MB.showwarning(message="Seleccione una gramatica para gráficar", title="ERROR")
         
     def Ventana_frame(self):
         self.frame = Frame()
@@ -284,7 +328,7 @@ class GR(Menu):
         self.__btn_Regresar = Button(self.frame, text = "Salir", command = super().ir_pantalla_menu, width = 9, height = 8, font = ("Arial", 10), bg = "#E7C09C")
         self.__btn_Regresar.place(x = 172, y = 24)
 
-        self.__btn_Ayuda = Button(self.frame, text = "Ayuda", command = self.__ayuda, width = 9, height = 3, font = ("Arial", 10), bg = "#E7C09C")
+        self.__btn_Ayuda = Button(self.frame, text = "Ayuda", command = self.__ir_pantalla_ayudaGR, width = 9, height = 3, font = ("Arial", 10), bg = "#E7C09C")
         self.__btn_Ayuda.place(x = 172, y = 165)
 
         self.frame.mainloop()
@@ -351,7 +395,25 @@ class EvaluarCadenaGR(Menu):
         GR()      
 
     def __evaluarCadena(self):
-        print('hola')
+        try:
+            cadena = self.__tb_validar.get()
+            ruta = self.__tb_ruta.get()
+
+            if cadena == '' and ruta == '':
+                MB.showwarning(message="No ha ingresado nada para evaluar.", title="Revise los campos de texto")
+                return 
+
+            if cadena != '' and ruta == '':
+                DB.scanner(nombreAFD, cadena, '')
+                return 0
+            elif ruta != '' and cadena == '':
+                listAceptacion, cantAFDs = DB.scanner(nombreAFD, ruta, 'si')
+                DB.rutaPDF(cantAFDs, ruta, nombreAFD, listAceptacion)
+                return 0
+            else:
+                MB.showwarning(message="Por favor, rellene un solo campo.", title="Revise los campos de texto")
+        except:
+            MB.showerror(message="Por favor, elija un AFD.", title="ERROR")
 
     def funtionsCombo(self, event):
         var = event.widget.get()
@@ -359,15 +421,18 @@ class EvaluarCadenaGR(Menu):
         nombreAFD = var
 
     def __listaGRS(self):
-        listaAux = []
-        for i in DB.lista_AFD:
-            listaAux.append(i.getNombre())
+        try:
+            listaAux = []
+            for i in DB.lista_AFD:
+                listaAux.append(i.getNombre())
 
-        # MENU DE AFD'S
-        reports = ttk.Combobox(self.frame, width=18, height=5, values = listaAux, state='readonly')
-        reports.place(x = 100, y = 45)
-        reports.current(0)
-        reports.bind('<<ComboboxSelected>>', self.funtionsCombo)
+            # MENU DE GRAMATICAS
+            reports = ttk.Combobox(self.frame, width=18, height=5, values = listaAux, state='readonly')
+            reports.place(x = 100, y = 45)
+            reports.current(0)
+            reports.bind('<<ComboboxSelected>>', self.funtionsCombo)
+        except:
+            MB.showwarning(message="Por favor, ingrese sus gramaticas.", title="Carga de archivos")
             
     def Ventana_frame(self):
         self.frame = Frame()
@@ -379,10 +444,10 @@ class EvaluarCadenaGR(Menu):
         Label(self.frame, text = "Ruta:", bg = "#F9E1BE", font = ("Comic Sans MS", 10)).place(x = 190, y = 86)
 
         # JTEXFIELD------
-        self.__tb_nombre = Entry(self.frame, font = ("Comic Sans MS", 10), width = 17, justify = "center")
-        self.__tb_nombre.place(x = 11, y = 110)
-        self.__tb_estados= Entry(self.frame, font = ("Comic Sans MS", 10), width = 17, justify = "center")
-        self.__tb_estados.place(x = 186, y = 110)
+        self.__tb_validar = Entry(self.frame, font = ("Comic Sans MS", 10), width = 17, justify = "center")
+        self.__tb_validar.place(x = 11, y = 110)
+        self.__tb_ruta= Entry(self.frame, font = ("Comic Sans MS", 10), width = 17, justify = "center")
+        self.__tb_ruta.place(x = 186, y = 110)
 
         # BUTTON------
         self.__btn_Regrasar = Button(self.frame, text = "Regresar", command = self.__ir_pantalla_menuGR, width = 8, height = 1, font = ("Arial", 9), bg = "#E7C09C")
@@ -396,8 +461,36 @@ class EvaluarCadenaGR(Menu):
 
         self.frame.mainloop()
 
+class ayudaGR(Menu):
+    def __init__(self):
+        super().General_ventana()
+        self.ventana.title("Ayuda GR")
+        super().centrar(self.ventana, 540, 420)
+        self.ventana.geometry("540x400")# ANCHO X LARGO
+        self.Ventana_frame()  
 
+    def __ir_pantalla_menuGR(self):
+        self.ventana.destroy()
+        GR()      
 
+    def Ventana_frame(self):
+        self.frame = Frame()
+        self.frame.pack()
+        self.frame.config(bg = "#F9E1BE", width = "540", height = "390", relief = "ridge", bd = 12)
+
+        # LABLES------
+        Label(self.frame, text = "¿Qué es una grámatica regular?", bg = "#F9E1BE", font = ("Comic Sans MS", 12)).place(x = 133, y = 3)
+        Label(self.frame, text = "Generan los lenguajes regulares (aquellos reconocidos por un \nautómata finito). Son las gramáticas más restrictivas. El lado \nderecho de una producción debe contener un símbolo terminal\n y, como máximo, un símbolo no terminal", bg = "#F9E1BE", font = ("Comic Sans MS", 11)).place(x = 22, y = 35)
+
+        img = tkinter.PhotoImage(file = './imas/GR.png', width=267, height=158)
+        lbl_img = tkinter.Label(self.frame, image=img)
+        lbl_img.place(x = 105, y = 135)
+
+        # BUTTON------
+        self.__btn_Regrasar = Button(self.frame, text = "Regresar", command=self.__ir_pantalla_menuGR, width = 8, height = 1, font = ("Arial", 9), bg = "#E7C09C")
+        self.__btn_Regrasar.place(x = 210, y = 308)
+
+        self.frame.mainloop()
 
 #.........................................................CARGAR ARCHIVOS...............................................
 class CargarArchivos(Menu):
@@ -452,7 +545,5 @@ class CargarArchivos(Menu):
         self.__btn_Regresar.place(x = 158, y = 25)
 
         self.frame.mainloop()
-
-
 
 Menu()
